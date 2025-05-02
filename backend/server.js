@@ -7,6 +7,12 @@ import cors from "cors";
 import { connectDB } from "./config/connection.js";
 import { globalErrorHandlingMiddleware } from "./middlewares/globalErrorHandlingMiddleware.js";
 
+process.on("uncaughtException", (err) => {
+  console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.log(err.name, "=>", err.message);
+  process.exit(1);
+});
+
 const app = express();
 // port
 const port = process.env.PORT || 3000;
@@ -33,6 +39,14 @@ app.get("/", (req, res) => {
 // });
 
 app.use(globalErrorHandlingMiddleware);
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on port http://localhost:${port}`);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.log("unhandled Rejection 💥 Shutting down...");
+  console.log(err.name, "=>", err.message);
+  server.close(() => {
+    process.exit(1);
+  });
 });
